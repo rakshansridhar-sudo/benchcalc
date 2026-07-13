@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#0d1614">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BenchCalc">
+<title>BenchCalc — Lab Bench Calculators</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M9 2v6.5L3.8 18.2A2 2 0 0 0 5.6 21h12.8a2 2 0 0 0 1.8-2.8L15 8.5V2"/>
+          <path d="M9 2h6"/>
+          <path d="M6.5 15h11"/>
+        </svg>
+      </span>
+      <span class="brand-name">BenchCalc</span>
+    </div>
+    <span id="statusPill" class="status-pill">ready</span>
+  </header>
+
+  <main class="screen" id="screen">
+
+    <!-- MOLARITY / DILUTION -->
+    <section class="tool active" id="tool-molarity" data-tool="molarity">
+      <h1 class="tool-title">Molarity &amp; Dilution</h1>
+      <p class="tool-sub">Solve mass ↔ concentration, or C₁V₁ = C₂V₂ dilutions.</p>
+
+      <div class="segmented" data-group="molarity-mode">
+        <button class="seg-btn active" data-mode="mass">Mass → Molarity</button>
+        <button class="seg-btn" data-mode="dilution">Dilution (C₁V₁=C₂V₂)</button>
+      </div>
+
+      <!-- Mass <-> Molarity -->
+      <div class="pane active" data-pane="mass">
+        <p class="hint">Enter any 3 of 4 fields — the 4th is calculated. Formula: mass (g) = M × MW × V(L)</p>
+        <div class="field">
+          <label>Mass <span class="unit-label">g</span></label>
+          <input inputmode="decimal" class="num" id="m_mass" placeholder="e.g. 0.585">
+        </div>
+        <div class="field">
+          <label>Molecular weight <span class="unit-label">g/mol</span></label>
+          <input inputmode="decimal" class="num" id="m_mw" placeholder="e.g. 58.44 (NaCl)">
+        </div>
+        <div class="field">
+          <label>Volume</label>
+          <div class="input-with-unit">
+            <input inputmode="decimal" class="num" id="m_vol" placeholder="e.g. 100">
+            <select id="m_vol_unit" class="unit-select">
+              <option value="L">L</option>
+              <option value="mL" selected>mL</option>
+              <option value="uL">µL</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Concentration</label>
+          <div class="input-with-unit">
+            <input inputmode="decimal" class="num" id="m_conc" placeholder="e.g. 100">
+            <select id="m_conc_unit" class="unit-select">
+              <option value="M">M</option>
+              <option value="mM" selected>mM</option>
+              <option value="uM">µM</option>
+            </select>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-primary" id="m_calc">Calculate missing value</button>
+          <button class="btn-ghost" id="m_clear">Clear</button>
+        </div>
+        <div class="result" id="m_result"></div>
+      </div>
+
+      <!-- Dilution -->
+      <div class="pane" data-pane="dilution">
+        <p class="hint">Leave exactly one field blank — it will be solved for.</p>
+        <div class="field">
+          <label>C₁ — stock concentration</label>
+          <input inputmode="decimal" class="num" id="d_c1" placeholder="e.g. 10">
+        </div>
+        <div class="field">
+          <label>V₁ — stock volume to use</label>
+          <input inputmode="decimal" class="num" id="d_v1" placeholder="e.g. 5">
+        </div>
+        <div class="field">
+          <label>C₂ — final concentration</label>
+          <input inputmode="decimal" class="num" id="d_c2" placeholder="e.g. 1">
+        </div>
+        <div class="field">
+          <label>V₂ — final volume</label>
+          <input inputmode="decimal" class="num" id="d_v2" placeholder="e.g. 50">
+        </div>
+        <p class="hint subtle">Units just need to be consistent across all four (any conc unit, any volume unit).</p>
+        <div class="actions">
+          <button class="btn-primary" id="d_calc">Calculate missing value</button>
+          <button class="btn-ghost" id="d_clear">Clear</button>
+        </div>
+        <div class="result" id="d_result"></div>
+      </div>
+    </section>
+
+    <!-- PRIMER TM -->
+    <section class="tool" id="tool-tm" data-tool="tm">
+      <h1 class="tool-title">Primer T<sub>m</sub></h1>
+      <p class="tool-sub">Paste a primer sequence to estimate melting temperature, GC%, and length.</p>
+
+      <div class="field">
+        <label>Primer sequence (5'→3')</label>
+        <textarea id="tm_seq" class="seq-input" rows="3" placeholder="e.g. ATGCGTACGGCTAACGTTAGC" autocapitalize="characters" spellcheck="false"></textarea>
+      </div>
+
+      <div class="field-row">
+        <div class="field small">
+          <label>Na⁺ conc <span class="unit-label">mM</span></label>
+          <input inputmode="decimal" class="num" id="tm_salt" value="50">
+        </div>
+        <div class="field small">
+          <label>Primer conc <span class="unit-label">nM</span></label>
+          <input inputmode="decimal" class="num" id="tm_primer_conc" value="250">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-primary" id="tm_calc">Calculate T<sub>m</sub></button>
+        <button class="btn-ghost" id="tm_clear">Clear</button>
+      </div>
+
+      <div class="result" id="tm_result"></div>
+
+      <div class="stat-grid" id="tm_stats" hidden>
+        <div class="stat"><span class="stat-label">Length</span><span class="stat-value" id="tm_len">–</span></div>
+        <div class="stat"><span class="stat-label">GC content</span><span class="stat-value" id="tm_gc">–</span></div>
+        <div class="stat"><span class="stat-label">Wallace T<sub>m</sub></span><span class="stat-value" id="tm_wallace">–</span></div>
+        <div class="stat"><span class="stat-label">Salt-adjusted T<sub>m</sub></span><span class="stat-value" id="tm_salted">–</span></div>
+      </div>
+      <p class="hint subtle">Wallace rule (best for &lt;14 nt): Tm = 4(G+C) + 2(A+T). Salt-adjusted formula (better for 14–70 nt): Tm = 64.9 + 41×(GC−16.4)/N, adjusted for Na⁺.</p>
+    </section>
+
+    <!-- PCR MIX -->
+    <section class="tool" id="tool-pcr" data-tool="pcr">
+      <h1 class="tool-title">PCR Master Mix</h1>
+      <p class="tool-sub">Scale reaction components across multiple reactions, with overage.</p>
+
+      <div class="field-row">
+        <div class="field small">
+          <label># Reactions</label>
+          <input inputmode="numeric" class="num" id="p_rxns" value="1" min="1">
+        </div>
+        <div class="field small">
+          <label>Overage <span class="unit-label">%</span></label>
+          <input inputmode="decimal" class="num" id="p_overage" value="10">
+        </div>
+        <div class="field small">
+          <label>Rxn volume <span class="unit-label">µL</span></label>
+          <input inputmode="decimal" class="num" id="p_total" value="25">
+        </div>
+      </div>
+
+      <div class="pcr-table" id="pcr_table">
+        <div class="pcr-row pcr-header">
+          <span>Component</span>
+          <span>µL / rxn</span>
+          <span></span>
+        </div>
+        <!-- rows injected by JS -->
+      </div>
+
+      <button class="btn-ghost btn-add" id="p_add_row">+ Add component</button>
+
+      <div class="actions">
+        <button class="btn-primary" id="p_calc">Calculate mix</button>
+        <button class="btn-ghost" id="p_reset">Reset to defaults</button>
+      </div>
+
+      <div class="result" id="p_result"></div>
+    </section>
+
+  </main>
+
+  <nav class="tabbar" id="tabbar">
+    <button class="tab active" data-target="molarity">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 2v6.5L3.8 18.2A2 2 0 0 0 5.6 21h12.8a2 2 0 0 0 1.8-2.8L15 8.5V2"/><path d="M9 2h6"/><path d="M6.5 15h11"/></svg>
+      <span>Molarity</span>
+    </button>
+    <button class="tab" data-target="tm">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2h8M9 2v13.5a5 5 0 1 0 6 0V2"/></svg>
+      <span>Primer Tm</span>
+    </button>
+    <button class="tab" data-target="pcr">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="12" rx="1.5"/><path d="M3 11h18M8 7V5.5A1.5 1.5 0 0 1 9.5 4h5A1.5 1.5 0 0 1 16 5.5V7"/></svg>
+      <span>PCR Mix</span>
+    </button>
+  </nav>
+
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
